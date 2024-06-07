@@ -568,7 +568,12 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
   dst_tims_ = computeTIMs(dst, &dst_tims_map_);
   TEASER_DEBUG_INFO_MSG(
       "Starting scale solver (only selecting inliers if scale estimation has been disabled).");
-  solveForScale(src_tims_, dst_tims_);
+  if (params_.use_max_clique) {
+    solveForScale(src_tims_, dst_tims_);
+  } else {
+    solution_.scale = 1.0;
+    scale_inliers_mask_.resize(1, src_tims_.cols());
+  }
   TEASER_DEBUG_INFO_MSG("Scale estimation complete.");
 
   // Calculate Maximum Clique
