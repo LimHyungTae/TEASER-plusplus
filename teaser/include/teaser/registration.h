@@ -20,6 +20,7 @@
 
 #include "teaser/graph.h"
 #include "teaser/geometry.h"
+#include <chrono>
 
 // TODO: might be a good idea to template Eigen::Vector3f and Eigen::VectorXf such that later on we
 // can decide to use double if we want. Double vs float might give nontrivial differences..
@@ -852,6 +853,8 @@ public:
    */
   Params getParams() { return params_; }
 
+  double pmc_time_;
+  double gnc_time_;
 private:
   Params params_;
   RegistrationSolution solution_;
