@@ -568,12 +568,45 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
   dst_tims_ = computeTIMs(dst, &dst_tims_map_);
   TEASER_DEBUG_INFO_MSG(
       "Starting scale solver (only selecting inliers if scale estimation has been disabled).");
-  if (params_.use_max_clique) {
-    solveForScale(src_tims_, dst_tims_);
-  } else {
-    solution_.scale = 1.0;
-    scale_inliers_mask_.resize(1, src_tims_.cols());
-  }
+  //if (params_.use_max_clique) {
+
+  auto t_tmp1 = std::chrono::high_resolution_clock::now();
+  solveForScale(src_tims_, dst_tims_);
+  //} else {
+  //std::cout <<"\033[1;33mNo scale filtering!" << std::endl;
+
+  auto t_tmp2 = std::chrono::high_resolution_clock::now();
+
+//  solution_.scale = 1.0;
+//  Eigen::Matrix<double, 1, Eigen::Dynamic> v1_dist =
+//      src_tims_.array().square().colwise().sum().array().sqrt();
+//  Eigen::Matrix<double, 1, Eigen::Dynamic> v2_dist =
+//      dst_tims_.array().square().colwise().sum().array().sqrt();
+//
+//  Eigen::Matrix<double, 1, Eigen::Dynamic> raw_scales = v2_dist.array() / v1_dist.array();
+//  double beta_tmp = 2 * params_.noise_bound * sqrt(params_.cbar2);
+//  Eigen::Matrix<double, 1, Eigen::Dynamic> alphas_tmp = beta_tmp * v1_dist.cwiseInverse();
+//  scale_inliers_mask_ = (raw_scales.array() - solution_.scale).array().abs() <= alphas_tmp.array();
+//
+//  auto t_tmp3 = std::chrono::high_resolution_clock::now();
+//
+//  double t_original = std::chrono::duration_cast<std::chrono::duration<double>>(t_tmp2 - t_tmp1).count();
+//  double t_ours = std::chrono::duration_cast<std::chrono::duration<double>>(t_tmp3 - t_tmp2).count();
+//
+//  std:: cout << "[Time] Original: " << t_original << std::endl;
+//  std:: cout << "[Time] Ours: " << t_ours << std::endl;
+//
+//  std:: cout << "Original: " << src.cols() << std::endl;
+//  std:: cout << "Before: " << src_tims_.cols() << std::endl;
+//  std:: cout << "Before (for map): " << src_tims_map_.cols() << std::endl;
+//
+//  int count_tmp = 0;
+//  for (size_t i = 0; i < scale_inliers_mask_.cols(); ++i) {
+//      if (scale_inliers_mask_(0, i)) {
+//        count_tmp++;
+//	  }
+//    }
+//  std:: cout << "After: " << count_tmp << " / "<< scale_inliers_mask_.cols() << std::endl;
   TEASER_DEBUG_INFO_MSG("Scale estimation complete.");
 
   // Calculate Maximum Clique
@@ -709,7 +742,8 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
   solution_.valid = true;
 
   auto t_end = std::chrono::high_resolution_clock::now();
-  pmc_time_ = std::chrono::duration_cast<std::chrono::duration<double>>(t_mid - t_init).count();
+  scale_solver_time_ = std::chrono::duration_cast<std::chrono::duration<double>>(t_tmp2 - t_tmp1).count();
+  pmc_time_ = std::chrono::duration_cast<std::chrono::duration<double>>(t_mid - t_tmp2).count();
   gnc_time_ = std::chrono::duration_cast<std::chrono::duration<double>>(t_end - t_mid).count();
 
   return solution_;

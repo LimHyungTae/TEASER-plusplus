@@ -853,6 +853,7 @@ public:
    */
   Params getParams() { return params_; }
 
+  double scale_solver_time_;
   double pmc_time_;
   double gnc_time_;
 private:
