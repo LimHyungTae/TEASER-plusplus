@@ -536,6 +536,8 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
                                         const Eigen::Matrix<double, 3, Eigen::Dynamic>& dst) {
   assert(scale_solver_ && rotation_solver_ && translation_solver_);
 
+  auto t_init = std::chrono::high_resolution_clock::now();
+
   // Handle deprecated params
   if (!params_.use_max_clique) {
     TEASER_DEBUG_INFO_MSG(
@@ -566,7 +568,10 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
   dst_tims_ = computeTIMs(dst, &dst_tims_map_);
   TEASER_DEBUG_INFO_MSG(
       "Starting scale solver (only selecting inliers if scale estimation has been disabled).");
+  auto t_before_scale = std::chrono::high_resolution_clock::now();
   solveForScale(src_tims_, dst_tims_);
+  auto t_after_scale = std::chrono::high_resolution_clock::now();
+
   TEASER_DEBUG_INFO_MSG("Scale estimation complete.");
 
   // Calculate Maximum Clique
@@ -659,6 +664,8 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
     pruned_src_tims_ = computeTIMs(src_inliers, &src_tims_map_rotation_);
   }
 
+  auto t_tim = std::chrono::high_resolution_clock::now();
+
   // Remove scaling for rotation estimation
   pruned_dst_tims_ *= (1 / solution_.scale);
 
@@ -698,6 +705,11 @@ teaser::RobustRegistrationSolver::solve(const Eigen::Matrix<double, 3, Eigen::Dy
 
   // Update validity flag
   solution_.valid = true;
+
+  auto t_end = std::chrono::high_resolution_clock::now();
+  scale_solver_time_ = std::chrono::duration_cast<std::chrono::duration<double>>(t_after_scale - t_before_scale).count();
+  pmc_time_ = std::chrono::duration_cast<std::chrono::duration<double>>(t_tim - t_after_scale).count();
+  gnc_time_ = std::chrono::duration_cast<std::chrono::duration<double>>(t_end - t_tim).count();
 
   return solution_;
 }
